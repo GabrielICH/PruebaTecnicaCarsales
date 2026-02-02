@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "onbXKx6X6rc=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\gcace\\PruebaTecnicaCarsales\\backend\\Api\\Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\gcace\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.11\\microsoft.aspnetcore.openapi.9.0.11.nupkg.sha512",
+    "C:\\Users\\gcace\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
