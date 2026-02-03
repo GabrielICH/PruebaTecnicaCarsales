@@ -42,3 +42,16 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.cache
+*.log
+
+# NuGet
+*.nuget.*
+project.assets.json
+project.nuget.cache

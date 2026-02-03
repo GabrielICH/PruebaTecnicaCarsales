@@ -28,11 +28,12 @@ app.UseSwaggerUI(c =>
 });
 
 
+
 // app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>(); //Middleware para manejo de excepciones
 
 app.Run();
