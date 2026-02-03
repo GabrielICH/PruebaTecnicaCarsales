@@ -1,4 +1,5 @@
 using Application.Characters;
+using Application.Episodes;
 using Application.Characters.Clients;
 using Infrastructure.RickAndMorty;
 using Api.Middleware;
@@ -9,14 +10,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<GetCharactersService>();
+builder.Services.AddScoped<GetEpisodesService>();
 
-builder.Services.AddHttpClient<IRickAndMortyClient, RickAndMortyClient>(client =>
+ builder.Services.AddHttpClient<IRickAndMortyClient, RickAndMortyClient>(client =>
 {
-    client.BaseAddress = new Uri(
-        builder.Configuration["RickAndMortyApi:BaseUrl"]!
-    );
+    client.BaseAddress = new Uri(builder.Configuration["RickAndMortyApi:BaseUrl"]!);
+    client.Timeout = TimeSpan.FromSeconds(10);
 });
-
 
 var app = builder.Build();
 
