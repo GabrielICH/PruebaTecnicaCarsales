@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Application.Common.Exceptions;
 
 namespace Api.Middleware;
 
@@ -26,18 +28,27 @@ public class ExceptionHandlingMiddleware
         {
             _logger.LogError(ex, "Unhandled exception");
 
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
-
-            var response = new
+            var (status, title) = ex switch
             {
-                message = "Ocurrió un error inesperado",
-                detail = ex.Message
+                NotFoundException => ((int)HttpStatusCode.NotFound, "Recurso no encontrado"),
+                BadRequestException => ((int)HttpStatusCode.BadRequest, "Solicitud inválida"),
+                ExternalServiceException => ((int)HttpStatusCode.BadGateway, "Error en servicio externo"),
+                _ => ((int)HttpStatusCode.InternalServerError, "Error interno")
             };
 
-            await context.Response.WriteAsync(
-                JsonSerializer.Serialize(response)
-            );
+            context.Response.StatusCode = status;
+            context.Response.ContentType = "application/json";
+
+            var problem = new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = ex.Message,
+                Instance = context.Request.Path
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
         }
+
     }
 }

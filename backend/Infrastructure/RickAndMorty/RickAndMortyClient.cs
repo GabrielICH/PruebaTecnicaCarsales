@@ -1,4 +1,6 @@
+using System.Net;
 using System.Net.Http.Json;
+using Application.Common.Exceptions;
 using Application.Characters.Clients;
 using Application.Characters.Models;
 using Infrastructure.RickAndMorty.Dtos;
@@ -17,19 +19,38 @@ public class RickAndMortyClient : IRickAndMortyClient
     public async Task<PagedResult<CharacterResult>> GetCharactersAsync(CharacterQuery query)
     {
       var parameters = new Dictionary<string, string?>
-    {
-        ["page"] = query.Page.ToString(),
-        ["name"] = query.Name,
-        ["status"] = query.Status,
-        ["species"] = query.Species
-    };
+        {
+            ["page"] = (query.Page <= 0 ? 1 : query.Page).ToString(),
+            ["name"] = query.Name,
+            ["status"] = query.Status,
+            ["species"] = query.Species
+        };
 
-    var queryString = BuildQueryString(parameters);
-    var url = string.IsNullOrEmpty(queryString)
-        ? "character"
-        : $"character?{queryString}";
+        var queryString = BuildQueryString(parameters);
+        var url = string.IsNullOrEmpty(queryString) ? "character" : $"character?{queryString}";
 
-    var response = await _httpClient.GetFromJsonAsync<RickAndMortyResponseDto>(url);
+        var httpResponse = await _httpClient.GetAsync(url);
+
+        if (httpResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new NotFoundException("No se encontraron personajes con los filtros indicados.");
+        }
+
+        if (httpResponse.StatusCode == HttpStatusCode.BadRequest)
+        {
+            throw new BadRequestException("Parámetros inválidos para la consulta de personajes.");
+        }
+
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            throw new ExternalServiceException(
+                $"Error consultando Rick & Morty API. Status: {(int)httpResponse.StatusCode}"
+            );
+        }
+
+        var response = await httpResponse.Content
+            .ReadFromJsonAsync<RickAndMortyResponseDto>();
+
 
         var items = response?.Results.Select(c => new CharacterResult
         {
@@ -43,7 +64,7 @@ public class RickAndMortyClient : IRickAndMortyClient
         return new PagedResult<CharacterResult>
         {
             Items = items,
-            Page = query.Page,
+            Page = query.Page <= 0 ? 1 : query.Page,
             TotalPages = response?.Info.Pages ?? 0,
             TotalCount = response?.Info.Count ?? 0
         };
