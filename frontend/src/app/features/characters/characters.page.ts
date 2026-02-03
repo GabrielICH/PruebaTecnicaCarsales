@@ -48,23 +48,36 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
     </button>
 
     <button class="btn" (click)="clearFilters()">
-      Limpiar
-    </button>
-  </div>
-</div>
+          Limpiar
+        </button>
+      </div>
+    </div>
+
      <div class="empty card" *ngIf="items().length === 0 && error()">
         <div class="empty-title">Sin resultados</div>
         <div class="empty-sub">Prueba con otro nombre o limpia el filtro.</div>
       </div>
-    <!-- Paginación en banner -->
-      <app-pagination-bar
-        [page]="page()"
-        [totalPages]="totalPages()"
-        [disabled]="loading()"
-        (pageChange)="page.set($event)">
-      </app-pagination-bar>
 
-     
+      <div class="grid" *ngIf="!loading() && items().length">
+        <div class="card char-card" *ngFor="let c of items()">
+          <div class="thumb"><img [src]="c.image" [alt]="c.name" /></div>
+          <div class="body">
+            <div class="name">{{ c.name }}</div>
+            <div class="chips">
+              <span class="chip">{{ c.status }}</span>
+              <span class="chip ghost">{{ c.species }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- Paginación en banner -->
+  <app-pagination-bar
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [disabled]="loading()"
+      (pageChange)="onPageChange($event)">
+    </app-pagination-bar>
+
 
   `,
   styles: [`
@@ -116,19 +129,7 @@ export class CharactersPage {
   totalPages = computed(() => this.result()?.totalPages ?? 1);
 
   constructor() {
-    effect(() => {
-      // cuando cambian filtros, volvemos a la página 1 (pero evita loop)
-      this.page.set(1);
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      this.name(); this.status(); this.species();
-      this.fetch();
-    });
-
-    effect(() => {
-      // cuando cambia page, solo fetch
-      this.page();
-      this.fetch();
-    });
+   
   }
 
   fetch() {
@@ -166,6 +167,12 @@ clearFilters() {
   this.hasSearched.set(false);
   this.error.set(null);
  // this.result.set({ items: [], page: 1, totalPages: 1, totalCount: 0 }); // opcional
+}
+
+onPageChange(p: number) {
+  if (p === this.page()) return;
+  this.page.set(p);
+  this.fetch();
 }
 
   prev() { if (this.page() > 1) this.page.set(this.page() - 1); }

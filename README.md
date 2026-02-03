@@ -12,13 +12,13 @@ Repositorio con **Backend (.NET)** y **Frontend (Angular)**.
 
 ## Cómo ejecutar
 
+### FrontEnd
+cd frontend
+npm install
+npx ng serve
+
 ### Backend
 ```bash
 cd backend
 dotnet restore
 dotnet run --project Api/Api.csproj
-
-### FrontEnd
-cd frontend
-npm install
-npx ng serve

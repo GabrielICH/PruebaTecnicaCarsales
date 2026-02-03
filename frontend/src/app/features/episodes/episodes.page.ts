@@ -64,7 +64,7 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
       [page]="page()"
       [totalPages]="totalPages()"
       [disabled]="loading()"
-      (pageChange)="page.set($event)">
+      (pageChange)="onPageChange($event)">
     </app-pagination-bar>
   `,
   styles: [`
@@ -230,6 +230,12 @@ clearFilters() {
   //this.page.set(1);
   this.error.set(null);
   this.hasSearched.set(false);
+}
+
+onPageChange(p: number) {
+  if (p === this.page()) return;
+  this.page.set(p);
+  this.fetch();
 }
 
   fetch() {
