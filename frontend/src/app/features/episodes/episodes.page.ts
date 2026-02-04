@@ -14,8 +14,10 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
   template: `
   <h2 class="page-title">Episodios</h2>
 
+
+  @defer (when hasSearched() && error()) {
     <app-error-banner *ngIf="hasSearched()" [message]="error()"> </app-error-banner>
-    
+  }
     <!-- Panel de filtros -->
     <div class="card filters">
       <div class="field">
@@ -23,7 +25,7 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
         <input
           class="input"
           [value]="name()"
-          (input)="onNameInput($any($event.target).value)"
+          (input)="onNameInput($event)"
           placeholder="Ej: Morty"
         />
       </div>
@@ -39,19 +41,27 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
 
     
     <!-- Cards -->
-    <div class="grid" *ngIf="items().length">
-      <article class="card ep-card" *ngFor="let e of items()">
-        <div class="ep-head">
-          <div class="ep-title">{{ e.name }}</div>
-          <span class="ep-badge">{{ e.episodeCode }}</span>
-        </div>
-    
-        <div class="ep-meta">
-          <span class="dot"></span>
-          <span>{{ e.airDate }}</span>
-        </div>
-      </article>
-</div>
+    @defer (when !loading())  {
+            <div class="grid" *ngIf="items().length">
+              <article class="card ep-card" *ngFor="let e of items()">
+                <div class="ep-head">
+                  <div class="ep-title">{{ e.name }}</div>
+                  <span class="ep-badge">{{ e.episodeCode }}</span>
+                </div>
+            
+                <div class="ep-meta">
+                    <span class="dot"></span>
+                    <span>{{ e.airDate }}</span>
+                  </div>
+                </article>
+               </div>
+  }@placeholder {
+
+      <div class="grid skeleton">
+        <div class="card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]"></div>
+  </div>
+}
+
 
 <!-- Empty state -->
 <div class="empty card" *ngIf="items().length === 0 && error()">
@@ -60,12 +70,15 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
 </div>
 
 <!-- Paginación en banner -->
+
+@defer (when totalPages() > 1) {
     <app-pagination-bar
       [page]="page()"
       [totalPages]="totalPages()"
       [disabled]="loading()"
       (pageChange)="onPageChange($event)">
     </app-pagination-bar>
+}
   `,
   styles: [`
    .page-title{
@@ -214,9 +227,14 @@ export class EpisodesPage {
     //});
   }
 
-  onNameInput(value: string) {
-    this.name.set(value);
-  }
+  onNameInput(event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  this.name.set(value);
+}
+
+ngOnInit() {
+  this.fetch();
+}
 
 applyFilters() {
   this.nameApplied.set(this.name().trim());
@@ -227,9 +245,11 @@ applyFilters() {
 
 clearFilters() {
   this.name.set('');
-  //this.page.set(1);
+  this.nameApplied.set('');
+  this.page.set(1);
+  this.hasSearched.set(true);
   this.error.set(null);
-  this.hasSearched.set(false);
+  this.fetch();
 }
 
 onPageChange(p: number) {

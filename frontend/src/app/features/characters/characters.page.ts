@@ -17,9 +17,9 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
   ],
   template: `
     <h2>Personajes</h2>
-
+@defer (when hasSearched() && error()) {
     <app-error-banner *ngIf="hasSearched()" [message]="error()" />
-
+}
   <div class="card filters">
 
   <div>
@@ -58,26 +58,35 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
         <div class="empty-sub">Prueba con otro nombre o limpia el filtro.</div>
       </div>
 
-      <div class="grid" *ngIf="!loading() && items().length">
-        <div class="card char-card" *ngFor="let c of items()">
-          <div class="thumb"><img [src]="c.image" [alt]="c.name" /></div>
-          <div class="body">
-            <div class="name">{{ c.name }}</div>
-            <div class="chips">
-              <span class="chip">{{ c.status }}</span>
-              <span class="chip ghost">{{ c.species }}</span>
+
+    @defer (when !loading())  {
+          <div class="grid" *ngIf="!loading() && items().length">
+            <div class="card char-card" *ngFor="let c of items()">
+              <div class="thumb"><img [src]="c.image" [alt]="c.name" /></div>
+              <div class="body">
+                <div class="name">{{ c.name }}</div>
+                <div class="chips">
+                  <span class="chip">{{ c.status }}</span>
+                  <span class="chip ghost">{{ c.species }}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+      }@placeholder {
+    
+          <div class="grid skeleton">
+            <div class="card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]"></div>
       </div>
+    }
     <!-- Paginación en banner -->
+ @defer (when totalPages() > 1) {
   <app-pagination-bar
       [page]="page()"
       [totalPages]="totalPages()"
       [disabled]="loading()"
       (pageChange)="onPageChange($event)">
     </app-pagination-bar>
-
+     }
 
   `,
   styles: [`
@@ -108,6 +117,21 @@ import { ErrorBannerComponent } from '../../shared/components/error-banner/error
     .chip.alive{ border-color: rgba(0,255,160,.28); background: rgba(0,255,160,.10); }
     .chip.dead{ border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.14); }
     .chip.ghost{ opacity: .9; }
+    .skeleton-card {
+                height: 260px;
+                background: linear-gradient(
+                  90deg,
+                  #111 25%,
+                  #1b1b1b 37%,
+                  #111 63%
+                );
+                animation: shimmer 1.4s infinite;
+              }
+              
+              @keyframes shimmer {
+                0% { background-position: -400px 0; }
+                100% { background-position: 400px 0; }
+              }
       `]
 })
 export class CharactersPage {
@@ -153,6 +177,10 @@ export class CharactersPage {
   });
 }
 
+ngOnInit() {
+  this.fetch();
+}
+
  applyFilters() {
   this.hasSearched.set(true);
   this.page.set(1);
@@ -166,6 +194,7 @@ clearFilters() {
   this.page.set(1);
   this.hasSearched.set(false);
   this.error.set(null);
+  this.fetch(); 
  // this.result.set({ items: [], page: 1, totalPages: 1, totalCount: 0 }); // opcional
 }
 
